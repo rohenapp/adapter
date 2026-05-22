@@ -1,11 +1,13 @@
 package suwayomi.tachidesk.manga.impl
 
+import eu.kanade.tachiyomi.source.local.metadata.COMIC_INFO_FILE
 import kotlinx.coroutines.CoroutineScope
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.jdbc.select
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import suwayomi.tachidesk.manga.impl.chapter.getChapterDownloadReady
 import suwayomi.tachidesk.manga.impl.download.fileProvider.ChaptersFilesProvider
+import suwayomi.tachidesk.manga.impl.download.fileProvider.FileType
 import suwayomi.tachidesk.manga.impl.download.fileProvider.impl.ArchiveProvider
 import suwayomi.tachidesk.manga.impl.download.fileProvider.impl.FolderProvider
 import suwayomi.tachidesk.manga.impl.download.model.DownloadQueueItem
@@ -25,6 +27,21 @@ object ChapterDownloadHelper {
         chapterId: Int,
         index: Int,
     ): Pair<InputStream, String> = provider(mangaId, chapterId).getImage().execute(index)
+
+    fun getImageFiles(
+    mangaId: Int,
+    chapterId: Int,
+    ): List<String> =
+        provider(mangaId, chapterId)
+            .getImageFiles()
+            .filter { it.getName() != COMIC_INFO_FILE }
+            .sortedBy { it.getName() }
+            .map { fileType ->
+                when (fileType) {
+                    is FileType.RegularFile -> fileType.file.absolutePath
+                    is FileType.ZipFile -> "${getChapterCbzPath(mangaId, chapterId)}!/${fileType.entry.name}"
+                }
+            }
 
     fun getImageCount(
         mangaId: Int,

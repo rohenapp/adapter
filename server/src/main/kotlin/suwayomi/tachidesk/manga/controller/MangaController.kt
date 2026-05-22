@@ -504,6 +504,48 @@ object MangaController {
             },
         )
 
+    val pageList =
+        handler(
+            pathParam<Int>("mangaId"),
+            pathParam<Int>("chapterIndex"),
+            queryParam<String?>("format"),
+            queryParam<Boolean?>("opds"),
+            documentWith = {
+                withOperation {
+                    summary("Get chapter pages")
+                    description(
+                        "Get chapter pages for a given index. Cache use can be disabled so it only retrieves it directly from the source.",
+                    )
+                }
+            },
+            behaviorOf = { ctx, mangaId, chapterIndex, format, opds ->
+                if (opds == true) {
+                    ctx.getAttribute(Attribute.TachideskUser).requireUserWithBasicFallback(ctx)
+                } else {
+                    ctx.getAttribute(Attribute.TachideskUser).requireUser()
+                }
+
+                ctx.future {
+                    future {
+                        Page.getPageImageList(
+                            mangaId = mangaId,
+                            chapterIndex = chapterIndex,
+                        )
+                    }.thenApply {
+                        if (it == null) {
+                            ctx.status(HttpStatus.NOT_FOUND)
+                        } else {
+                            ctx.json(it)
+                        }
+                    }
+                }
+            },
+            withResults = {
+                json<Array<String>>(HttpStatus.OK)
+                httpCode(HttpStatus.NOT_FOUND)
+            },
+        )
+
     val downloadChapter =
         handler(
             pathParam<Int>("chapterId"),

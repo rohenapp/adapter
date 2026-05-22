@@ -70,7 +70,7 @@ abstract class ChaptersFilesProvider<Type : FileType>(
 ) : DownloadedFilesProvider {
     protected val logger = KotlinLogging.logger {}
 
-    protected abstract fun getImageFiles(): List<Type>
+    abstract fun getImageFiles(): List<Type>
 
     protected abstract fun getImageInputStream(image: Type): InputStream
 

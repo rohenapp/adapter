@@ -250,6 +250,25 @@ object Page {
         }
     }
 
+    fun getPageImageList(
+        mangaId: Int,
+        chapterIndex: Int,
+    ): List<String> {
+        val chapterEntry =
+            transaction {
+                ChapterTable
+                    .selectAll()
+                    .where { ChapterTable.manga eq mangaId and (ChapterTable.sourceOrder eq chapterIndex) }
+                    .first()
+            }
+
+        if (!chapterEntry[ChapterTable.isDownloaded]) return emptyList()
+
+        val chapterId = chapterEntry[ChapterTable.id].value
+
+        return ChapterDownloadHelper.getImageFiles(mangaId, chapterId)
+    }
+
     private suspend fun convertImageResponse(
         image: InputStream,
         mime: String,
