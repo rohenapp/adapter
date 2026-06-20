@@ -507,7 +507,7 @@ object MangaController {
     val pageList =
         handler(
             pathParam<Int>("mangaId"),
-            pathParam<Int>("chapterIndex"),
+            pathParam<Int>("chapterId"),
             queryParam<String?>("format"),
             queryParam<Boolean?>("opds"),
             documentWith = {
@@ -518,7 +518,7 @@ object MangaController {
                     )
                 }
             },
-            behaviorOf = { ctx, mangaId, chapterIndex, format, opds ->
+            behaviorOf = { ctx, mangaId, chapterId, format, opds ->
                 if (opds == true) {
                     ctx.getAttribute(Attribute.TachideskUser).requireUserWithBasicFallback(ctx)
                 } else {
@@ -529,7 +529,7 @@ object MangaController {
                     future {
                         Page.getPageImageList(
                             mangaId = mangaId,
-                            chapterIndex = chapterIndex,
+                            chapterId = chapterId,
                         )
                     }.thenApply {
                         if (it == null) {
